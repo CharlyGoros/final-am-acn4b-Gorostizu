@@ -10,10 +10,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
     EditText emailEditText,passwordEditText,confirmPasswordEditText;
@@ -38,24 +44,46 @@ public class LoginActivity extends AppCompatActivity {
         loginBtn.setOnClickListener((v)-> loginUser() );
         createAccountBtnTextView.setOnClickListener((v)->startActivity(new Intent(LoginActivity.this,CreateAccountActivity.class)) );
 
-        void loginUser(){
-            String email  = emailEditText.getText().toString();
-            String password  = passwordEditText.getText().toString();
 
-
-            boolean isValidated = validateData(email,password);
-            if(!isValidated){
-                return;
-            }
-            loginAccountInFirebase(email,password);
-
-        }
 
 
     }
+    void loginUser(){
+        String email  = emailEditText.getText().toString();
+        String password  = passwordEditText.getText().toString();
 
+
+        boolean isValidated = validateData(email,password);
+        if(!isValidated){
+            return;
+        }
+
+        loginAccountInFirebase(email,password);
+
+    }
     void loginAccountInFirebase(String email,String password){
-      
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        changeInProgress(true);
+        firebaseAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                changeInProgress(false);
+                if(task.isSuccessful()){
+                    //login is success
+                    if(firebaseAuth.getCurrentUser().isEmailVerified()){
+                        //go to mainactivity
+                        startActivity(new Intent(LoginActivity.this,MainActivity.class));
+                        finish();
+                    }else{
+                        Util.showToast(LoginActivity.this,"Email not verified, Please verify your email.");
+                    }
+
+                }else{
+                    //login failed
+                    Util.showToast(LoginActivity.this,task.getException().getLocalizedMessage());
+                }
+            }
+        });
     }
 
 
