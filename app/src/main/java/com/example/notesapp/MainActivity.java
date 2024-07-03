@@ -20,7 +20,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
+        addNoteBtn = findViewById(R.id.add_note_btn);
 
+        addNoteBtn.setOnClickListener((v)-> startActivity(new Intent(MainActivity.this,NoteDetsActivity.class)) );
     }
 }
 
